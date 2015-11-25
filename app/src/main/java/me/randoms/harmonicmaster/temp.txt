@@ -1,0 +1,311 @@
+package me.randoms.harmonicmaster;
+/*
+ * Copyright (C) 2010 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import android.app.Activity;
+import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Rect;
+import android.media.AudioFormat;
+import android.media.AudioManager;
+import android.media.AudioRecord;
+import android.media.MediaPlayer;
+import android.media.MediaRecorder.AudioSource;
+import android.media.audiofx.Equalizer;
+import android.media.audiofx.Visualizer;
+import android.net.Uri;
+import android.os.Bundle;
+import android.os.Environment;
+import android.util.Log;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+
+public class MainActivity extends Activity
+{
+	private static final String TAG = "AudioFxActivity";
+
+	private static final float VISUALIZER_HEIGHT_DIP = 160f;
+
+	private MediaPlayer mMediaPlayer;
+	private Visualizer mVisualizer;
+	private Equalizer mEqualizer;
+
+	private LinearLayout mLinearLayout;
+	private VisualizerView mVisualizerView;
+	private VisualizerView mFFTView;
+	private TextView mStatusTextView;
+	private AudioRecord mRecord;
+	@Override
+	public void onCreate(Bundle icicle)
+	{
+		super.onCreate(icicle);
+		
+		mStatusTextView = new TextView(this);
+
+		mLinearLayout = new LinearLayout(this);
+		mLinearLayout.setOrientation(LinearLayout.VERTICAL);
+		mLinearLayout.addView(mStatusTextView);
+
+		setContentView(mLinearLayout);
+
+		// Create the MediaPlayer
+		mMediaPlayer = MediaPlayer.create(this,Uri.parse(Environment.getExternalStorageDirectory().getPath()+ "/Music/op.mp3"));
+		Log.d(TAG,
+				"MediaPlayer audio session ID: "
+						+ mMediaPlayer.getAudioSessionId());
+		
+		setupVisualizerFxAndUI();
+		
+		// Make sure the visualizer is enabled only when you actually want to
+		// receive data, and
+		// when it makes sense to receive data.
+		mVisualizer.setEnabled(true);
+
+		// When the stream ends, we don't need to collect any more data. We
+		// don't do this in
+		// setupVisualizerFxAndUI because we likely want to have more,
+		// non-Visualizer related code
+		// in this callback.
+		mMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener()
+				{
+					public void onCompletion(MediaPlayer mediaPlayer)
+					{
+						mVisualizer.setEnabled(false);
+						getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+						setVolumeControlStream(AudioManager.STREAM_SYSTEM);
+						mStatusTextView.setText("音乐播放完毕");
+					}
+				});
+
+		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		setVolumeControlStream(AudioManager.STREAM_MUSIC);
+		mMediaPlayer.start();
+		mStatusTextView.setText("播放音乐中....");
+	}
+
+	private static int[] mSampleRates = new int[] { 8000, 11025, 22050, 44100 };
+	public AudioRecord findAudioRecord() {
+	    for (int rate : mSampleRates) {
+	        for (short audioFormat : new short[] { AudioFormat.ENCODING_PCM_8BIT, AudioFormat.ENCODING_PCM_16BIT }) {
+	            for (short channelConfig : new short[] { AudioFormat.CHANNEL_IN_MONO, AudioFormat.CHANNEL_IN_STEREO }) {
+	                try {
+	                    Log.d("Randoms" ,"Attempting rate " + rate + "Hz, bits: " + audioFormat + ", channel: "
+	                            + channelConfig);
+	                    int bufferSize = AudioRecord.getMinBufferSize(rate, channelConfig, audioFormat);
+
+	                    if (bufferSize != AudioRecord.ERROR_BAD_VALUE) {
+	                        // check if we can instantiate and have a success
+	                        AudioRecord recorder = new AudioRecord(AudioSource.DEFAULT, rate, channelConfig, audioFormat, bufferSize);
+
+	                        if (recorder.getState() == AudioRecord.STATE_INITIALIZED)
+	                            return recorder;
+	                    }
+	                } catch (Exception e) {
+	                    Log.e("Randoms", rate + "Exception, keep trying.",e);
+	                }
+	            }
+	        }
+	    }
+	    return null;
+	}
+
+	private void setupVisualizerFxAndUI()
+	{
+		mVisualizerView = new VisualizerView(this);
+		mVisualizerView.setLayoutParams(new ViewGroup.LayoutParams(
+				ViewGroup.LayoutParams.MATCH_PARENT,
+				(int) (VISUALIZER_HEIGHT_DIP * getResources()
+						.getDisplayMetrics().density)));
+		mFFTView = new VisualizerView(this);
+		mFFTView.setLayoutParams(new ViewGroup.LayoutParams(
+				ViewGroup.LayoutParams.MATCH_PARENT,
+				(int) (VISUALIZER_HEIGHT_DIP * getResources()
+						.getDisplayMetrics().density)));
+		
+		mLinearLayout.addView(mVisualizerView);
+		mRecord = findAudioRecord();
+		mRecord.startRecording();
+		mVisualizer = new Visualizer(mRecord.getAudioSessionId());
+		mVisualizer.setCaptureSize(256);
+		mVisualizer.setCaptureSize(1024);
+		mVisualizer.setDataCaptureListener(
+				new Visualizer.OnDataCaptureListener()
+				{
+					public void onWaveFormDataCapture(Visualizer visualizer,
+							byte[] bytes, int samplingRate)
+					{
+						mVisualizerView.updateVisualizer(bytes);
+						Log.d("Randoms","Called");
+					}
+
+					public void onFftDataCapture(Visualizer visualizer,
+							byte[] fft, int samplingRate)
+					{
+						//mVisualizerView.updateVisualizer(fft);
+					}
+				}, Visualizer.getMaxCaptureRate(), true, false);
+	}
+
+	@Override
+	protected void onPause()
+	{
+		super.onPause();
+
+		if (isFinishing() && mMediaPlayer != null)
+		{
+			mVisualizer.release();
+			mEqualizer.release();
+			mMediaPlayer.release();
+			mMediaPlayer = null;
+		}
+	}
+	
+	/**
+	 * A simple class that draws waveform data received from a
+	 * {@link Visualizer.OnDataCaptureListener#onWaveFormDataCapture }
+	 */
+	class VisualizerView extends View
+	{
+		private byte[] mBytes;
+		private double[] mFFTBytes;
+		private double[] FFTImage; // fft image part
+		private float[] mPoints;
+		private Rect mRect = new Rect();
+
+		private Paint mForePaint = new Paint();
+		private Paint mFFTPaint = new Paint();
+		private int mSpectrumNum = 512;
+		private Fft mFFT;
+		public VisualizerView(Context context)
+		{
+			super(context);
+			init();
+		}
+
+		private void init()
+		{
+			mBytes = null;
+
+			mForePaint.setStrokeWidth(8f);
+			mForePaint.setAntiAlias(true);
+			mForePaint.setColor(Color.rgb(0, 128, 255));
+			
+			mFFTPaint.setStrokeWidth(8f);
+			mFFTPaint.setAntiAlias(true);
+			mFFTPaint.setColor(Color.rgb(255, 102, 255));
+			
+			mFFT = new Fft(1024);
+			mFFTBytes = new double[mSpectrumNum];
+		}
+
+		public void updateVisualizer(byte[] fft)
+		{
+			// byte to double
+			double[] fftdata = new double[fft.length];
+			FFTImage = new double[fft.length];
+			for(int i = 0;i<fft.length;i++){
+				fftdata[i] = (double)fft[i];
+				FFTImage[i] = 0;
+			}
+			mFFT.fft(fftdata, FFTImage);
+			for(int i=0;i<mSpectrumNum;i++){
+				mFFTBytes[i] = Math.hypot(fftdata[i],FFTImage[i]);
+			}
+			
+			/*byte[] model = new byte[fft.length / 2 + 1];
+
+			model[0] = (byte) Math.abs(fft[0]);
+			for (int i = 2, j = 1; j < mSpectrumNum;)
+			{
+				model[j] = (byte) Math.hypot(fft[i], fft[i + 1]);
+				i += 2;
+				j++;
+			}*/
+			mBytes = fft;
+			invalidate();
+		}
+
+		@Override
+		protected void onDraw(Canvas canvas)
+		{
+			super.onDraw(canvas);
+
+			if (mBytes == null)
+			{
+				return;
+			}
+
+			if (mPoints == null || mPoints.length < mBytes.length * 4)
+			{
+				mPoints = new float[mBytes.length * 4];
+			}
+
+			mRect.set(0, 0, getWidth(), getHeight());
+
+			//绘制波形
+			/* for (int i = 0; i < mBytes.length - 1; i++) {
+			 mPoints[i * 4] = mRect.width() * i / (mBytes.length - 1);
+			 mPoints[i * 4 + 1] = mRect.height() / 2
+			 + ((byte) (mBytes[i] + 128)) * (mRect.height() / 2) / 128;
+			 mPoints[i * 4 + 2] = mRect.width() * (i + 1) / (mBytes.length - 1);
+			 mPoints[i * 4 + 3] = mRect.height() / 2
+			 + ((byte) (mBytes[i + 1] + 128)) * (mRect.height() / 2) / 128;
+			 }
+			canvas.drawLines(mPoints, mForePaint);*/
+			//绘制频谱
+			final int baseX = mRect.width()/mSpectrumNum;
+			final int height = mRect.height();
+
+			for (int i = 0; i < mSpectrumNum ; i++)
+			{
+				if (mFFTBytes[i] < 0)
+				{
+					mFFTBytes[i] = 127;
+				}
+				
+				final int xi = baseX*i + baseX/2;
+				
+				mPoints[i * 4] = xi;
+				mPoints[i * 4 + 1] = height;
+				
+				mPoints[i * 4 + 2] = xi;
+				mPoints[i * 4 + 3] = height - (float)mFFTBytes[i]/200;
+				//mPoints[i * 4 + 3] = height - 1;
+			}
+			
+			canvas.drawLines(mPoints,mFFTPaint);
+		}
+	}
+	
+	
+}
+
+
+
+
+recognize 界面设计
+应该包含的信息
+当前的时域图
+当前的频域图
+当前的识别结果
+
+

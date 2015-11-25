@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+    <RelativeLayout
+        android:id="@+id/actionbar"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_weight="0"
+        android:background="@drawable/background">
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="56dp">
+            
+            <TextView
+                android:id="@+id/setting_btn"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:layout_alignParentRight="true"
+	            android:layout_marginRight="16dp"
+	            android:layout_centerVertical="true"
+	            android:background="@drawable/update_black" />
+            
+            <TextView 
+                android:id="@+id/update_btn"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:layout_toLeftOf="@id/setting_btn"
+	            android:layout_marginRight="16dp"
+	            android:layout_centerVertical="true"
+	            android:background="@drawable/update_black"/>
+        </RelativeLayout>
+       	<me.randoms.harmonicmaster.views.floatBtnView 
+       	    xmlns:custom="http://schemas.android.com/apk/res-auto"
+       	    android:layout_height="166dp"
+       	    android:layout_width="166dp"
+       	    custom:fab_color="@color/accent_main"
+       	    custom:fab_top_zindex="2"
+       	    custom:fab_bottom_zindex ="1" 
+       	    custom:fab_icon="@drawable/record_white"/>
+    </RelativeLayout>
+    <me.randoms.harmonicmaster.views.Shadow
+        xmlns:custom="http://schemas.android.com/apk/res-auto" 
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        android:layout_weight="0"
+        custom:shadow_top_zindex="2"
+        custom:shadow_bottom_zindex="1" />
+    
+    <ListView 
+        android:id="@+id/music_list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp" 
+        android:layout_weight="1"/>
+</LinearLayout>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="select_btn">#CCCCCC</color>
+    <color name="select_btn_focus">#FFFFFF</color>
+    <color name="gray">#666666</color>
+    <color name="separator">#996600</color>
+    <color name="separator_active">#FFFF00</color>
+    <!-- 主色 -->
+    <color name="base_main">#03a9f4</color>
+    <color name="base_darker">#0288d1</color>
+    <color name="base_light">#b3e5fc</color>
+    <!-- 配色 -->
+    <color name="accent_light">#f4ff81</color>
+    <color name="accent_main">#eeff41</color>
+    <color name="accent_drak">#c6ff00</color>
+</resources>

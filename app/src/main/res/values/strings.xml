@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">HarmonicMaster</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+	<string name="select_mode">选择当前模式</string>
+	<string name="mode_recognize">识别模式</string>
+	<string name="mode_record">记录模式</string>
+	<string name="start_recognize">开始识别</string>
+	<string name="time_field_view">时域图</string>
+	<string name="spectrum_view">频域图</string>
+	<string name="start">开始</string>
+	<string name="exit">退出</string>
+</resources>

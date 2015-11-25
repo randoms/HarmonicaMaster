@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+    <LinearLayout
+        android:id="@+id/playLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical" >
+        <me.randoms.harmonicmaster.views.PlaySoundView
+	        xmlns:custom="http://schemas.android.com/apk/res/me.randoms.harmonicmaster"
+	        android:id="@+id/playView"
+	        android:layout_width="match_parent"
+	        android:layout_height="0dp"
+	        android:layout_weight="1"
+	        android:padding="10dp"
+	        custom:color="#66ccff">
+	        
+	    </me.randoms.harmonicmaster.views.PlaySoundView>
+	    <View 
+	        android:id="@+id/separator"
+	        android:layout_width="match_parent"
+	        android:layout_height="20dp"
+	        android:layout_weight="0"
+	        android:background="@color/separator"/>
+	    
+		<me.randoms.harmonicmaster.views.SoundResView
+	        xmlns:custom="http://schemas.android.com/apk/res/me.randoms.harmonicmaster"
+	        android:id="@+id/resView"
+	        android:layout_width="match_parent"
+	        android:layout_height="0dp"
+	        android:layout_weight="1"
+	        android:padding="10dp"
+	        custom:color="#ffccff">
+	        
+	    </me.randoms.harmonicmaster.views.SoundResView>
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/scoreLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:visibility="gone"
+        android:gravity="center" >
+        <TextView 
+            android:id="@+id/score"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textSize="40sp" />
+        
+        <Button
+            android:id="@+id/exitBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="@string/exit" />
+            
+    </LinearLayout>
+    
+</LinearLayout>
