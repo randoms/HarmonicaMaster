@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="me.randoms.harmonicmaster.HarmonicaSelectActivity"
+    android:orientation="vertical"
+    android:background="#000">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:text="十孔"
+        android:gravity="center_vertical"
+        android:textSize="24sp"
+        android:textColor="#fff"
+        android:paddingLeft="10dp"
+        android:id="@+id/ten"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:text="十二孔半音阶"
+        android:gravity="center_vertical"
+        android:textSize="24sp"
+        android:textColor="#fff"
+        android:paddingLeft="10dp"
+        android:id="@+id/twelve"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:text="二十四孔复音口琴"
+        android:gravity="center_vertical"
+        android:textSize="24sp"
+        android:textColor="#fff"
+        android:paddingLeft="10dp"
+        android:id="@+id/twentyFour"/>
+
+</LinearLayout>

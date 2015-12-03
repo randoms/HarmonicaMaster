@@ -3,15 +3,30 @@ package me.randoms.harmonicmaster.utils;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.UUID;
 
 import me.randoms.harmonicmaster.json.JSONArray;
 import me.randoms.harmonicmaster.json.JSONException;
 import me.randoms.harmonicmaster.json.JSONObject;
+import me.randoms.harmonicmaster.models.Tracks;
+
 import android.content.Context;
 import android.os.Environment;
 import android.util.Log;
+
+import com.leff.midi.MidiFile;
+import com.leff.midi.MidiTrack;
+import com.leff.midi.event.MidiEvent;
+import com.leff.midi.event.NoteOff;
+import com.leff.midi.event.NoteOn;
+import com.leff.midi.event.ProgramChange;
+import com.leff.midi.event.meta.Tempo;
 
 
 public final class Utils {
@@ -206,10 +221,24 @@ public final class Utils {
 		File myDir = new File(root+Statics.BASE_DIR+"/music");
 		myDir.mkdirs();
 		File[] musicFiles = myDir.listFiles();
-		JSONObject[] musicSheetList = new JSONObject[musicFiles.length];
-		for(int i=0;i<musicFiles.length;i++){
-			musicSheetList[i] = new JSONObject(readFile(musicFiles[i]));
-		}
+
+        // load midi files
+        File midiDir = new File(root+Statics.BASE_DIR+"/midi");
+        midiDir.mkdirs();
+        File[] midiFiles = midiDir.listFiles();
+        if(musicFiles.length + midiFiles.length == 0)
+            return new JSONObject[]{};
+        JSONObject[] musicSheetList = new JSONObject[musicFiles.length + midiFiles.length];
+
+
+        for(int i=0;i<musicFiles.length;i++){
+            musicSheetList[i] = new JSONObject(readFile(musicFiles[i]));
+        }
+
+        for(int i=0;i<midiFiles.length;i++){
+            musicSheetList[i + musicFiles.length] = midiToJson(midiFiles[i]);
+        }
+
 		mMusicList = musicSheetList;
 		return musicSheetList;
 	}
@@ -231,4 +260,144 @@ public final class Utils {
 		}
 		return res;
 	}
+
+	public static JSONObject midiToJson(File file){
+		MidiFile midiFile = null;
+		try {
+			midiFile = new MidiFile(file);
+		}catch (IOException e){
+			e.printStackTrace();
+			return null;
+		}
+		JSONObject musicData = new JSONObject();
+		musicData.put("author", "MidiFile");
+		musicData.put("time", file.lastModified());
+		musicData.put("name", file.getName());
+		musicData.put("id", UUID.randomUUID().toString());
+		MidiTrack track0 = midiFile.getTracks().get(0);
+		float bpm = 120;
+        Iterator<MidiEvent> it0 = track0.getEvents().iterator();
+        while (it0.hasNext()){
+            MidiEvent event = it0.next();
+            if(event instanceof Tempo){
+                Tempo tempo = (Tempo)event;
+                bpm = tempo.getBpm();
+            }
+        }
+        float tickTime = 60*1000/(midiFile.getResolution() * bpm);
+		long length = (long)(midiFile.getLengthInTicks() * tickTime);
+		musicData.put("length", length);
+		JSONArray soundList = new JSONArray();
+        musicData.put("sounds", soundList);
+        JSONArray trackList = new JSONArray();
+        // add track info
+        ArrayList<MidiTrack> tracks = midiFile.getTracks();
+        int trackCount = 0;
+        for(MidiTrack mTrack:tracks){
+            int programNum = 0;
+            int soundNum = 0;
+            Iterator<MidiEvent> lt = mTrack.getEvents().iterator();
+            while (lt.hasNext()){
+                MidiEvent event = lt.next();
+                if(event instanceof ProgramChange){
+                    programNum = ((ProgramChange) event).getProgramNumber() + 1;
+                }
+                if(event instanceof NoteOn){
+                    soundNum ++;
+                }
+            }
+            trackList.put(new Tracks("音轨" + trackCount, soundNum, programNum));
+            trackCount ++;
+        }
+        musicData.put("tracks", trackList);
+		return musicData;
+	}
+
+    public static JSONObject getMidiTracks(File file, int trackNum){
+        MidiFile midiFile = null;
+        try {
+            midiFile = new MidiFile(file);
+        }catch (IOException e){
+            e.printStackTrace();
+            return null;
+        }
+        JSONObject musicData = new JSONObject();
+        musicData.put("author", "MidiFile");
+        musicData.put("time", file.lastModified());
+        musicData.put("name", file.getName());
+        musicData.put("id", UUID.randomUUID().toString());
+        MidiTrack track0 = midiFile.getTracks().get(0);
+        float bpm = 120;
+        Iterator<MidiEvent> it0 = track0.getEvents().iterator();
+        while (it0.hasNext()){
+            MidiEvent event = it0.next();
+            if(event instanceof Tempo){
+                Tempo tempo = (Tempo)event;
+                bpm = tempo.getBpm();
+            }
+        }
+        float tickTime = 60*1000/(midiFile.getResolution() * bpm);
+        long length = (long)(midiFile.getLengthInTicks() * tickTime);
+
+        musicData.put("length", length);
+
+        JSONArray soundList = new JSONArray();
+        MidiTrack track1 = midiFile.getTracks().get(trackNum);
+        Iterator<MidiEvent> it1 = track1.getEvents().iterator();
+        // get average tone
+        int totalSound = 0;
+        int totalTone = 0;
+        while (it1.hasNext()){
+            MidiEvent event = it1.next();
+            if(event instanceof NoteOn){
+                NoteOn noteOn = (NoteOn)event;
+                totalSound ++;
+                totalTone += noteOn.getNoteValue();
+            }
+        }
+        int distanceFormCenter = 0;
+        int distanceToAdd = 0;
+        if(totalSound != 0){
+            distanceFormCenter = totalTone / totalSound;
+            distanceToAdd = -(int)(Math.floor((distanceFormCenter - 72.0)/12))*12; //转调, 72是中心C
+        }
+        it1 = track1.getEvents().iterator();
+        boolean isLastStillOn = false;
+        while (it1.hasNext()){
+            //TODO 这里需要修改
+            MidiEvent event = it1.next();
+            if(event instanceof NoteOff || event instanceof NoteOn){
+
+                if(isLastStillOn){
+                    JSONObject lastNote = (JSONObject) soundList.get(soundList.length() - 1);
+                    lastNote.put("end", (long)(event.getTick() * tickTime));
+                }
+
+                if(event instanceof NoteOn && ((NoteOn)event).getVelocity() != 0){
+                    NoteOn noteOn = (NoteOn)event;
+                    JSONObject soundData = new JSONObject();
+                    soundData.put("name", noteOn.getNoteValue() - 47 + distanceToAdd);
+                    long start = (long)(noteOn.getTick() * tickTime);
+                    soundData.put("start", start);
+                    soundList.put(soundData);
+                    isLastStillOn = true;
+                }else {
+                    isLastStillOn = false;
+                }
+
+                /*NoteOff noteOff = (NoteOff)event;
+                JSONObject soundData = new JSONObject();
+                soundData.put("name", noteOff.getNoteValue() - 47 + distanceToAdd);
+                Log.d("name", (noteOff.getNoteValue() - 47 + distanceToAdd) + "");
+                long start = (long)(noteOff.getTick() * tickTime);
+                long soundLength = (long)(noteOff.getDelta() * tickTime);
+                Log.d("length", soundLength + "");
+                soundData.put("start", start);
+                soundData.put("end", start + soundLength);
+                soundList.put(soundData);*/
+            }
+        }
+        musicData.put("sounds", soundList);
+        return musicData;
+    }
 }

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:layout_height="60dp"
+    android:gravity="center_vertical"
+    android:padding="10dp"
+    android:background="#000">
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="音轨1"
+        android:layout_marginRight="20dp"
+        android:textColor="#fff"
+        android:id="@+id/trackname"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="口琴"
+        android:textColor="#fff"
+        android:id="@+id/instrument"/>
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="34个音符"
+        android:gravity="right"
+        android:textColor="#fff"
+        android:id="@+id/soundNum"/>
+</LinearLayout>

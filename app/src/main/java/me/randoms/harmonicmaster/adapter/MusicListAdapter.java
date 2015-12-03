@@ -1,7 +1,9 @@
 package me.randoms.harmonicmaster.adapter;
 
+import me.randoms.harmonicmaster.GameActivity;
 import me.randoms.harmonicmaster.PlayActivity;
 import me.randoms.harmonicmaster.R;
+import me.randoms.harmonicmaster.SelectTrackActivity;
 import me.randoms.harmonicmaster.json.JSONObject;
 
 import org.joda.time.LocalDateTime;
@@ -24,6 +26,9 @@ public class MusicListAdapter extends BaseAdapter
 	
 	public MusicListAdapter(Context mContext,JSONObject[] mMusicList){
 		musicList = mMusicList;
+		if(mMusicList == null){
+			musicList = new JSONObject[]{};
+		}
 		context = mContext;
 	}
 
@@ -74,7 +79,15 @@ public class MusicListAdapter extends BaseAdapter
 	public void onItemClick(AdapterView<?> parent, View view, int position,
 			long id) {
 		// TODO Auto-generated method stub
-		Intent mIntent = new Intent(parent.getContext(),PlayActivity.class);
+        Intent mIntent;
+        if(musicList[position].has("tracks")){
+            // midi file
+            mIntent = new Intent(parent.getContext(), SelectTrackActivity.class);
+            mIntent.putExtra("midiName", musicList[position].getString("name"));
+        }else{
+            mIntent = new Intent(parent.getContext(),GameActivity.class);
+        }
+
 		mIntent.putExtra("uuid", musicList[position].getString("id"));
 		context.startActivity(mIntent);
 	}
