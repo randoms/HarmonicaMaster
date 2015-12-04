@@ -37,21 +37,29 @@ public abstract class Sprite
     static float[] virtualCoords = { -0.5F, 0.5F, 0.0F, -0.5F, -0.5F, 0.0F, 0.5F, -0.5F, 0.0F, 0.5F, 0.5F, 0.0F };
     protected ShortBuffer drawListBuffer;
     protected short[] drawOrder = { 0, 1, 2, 0, 2, 3 };
-    private float height = 0.0F;
-    private float left = 0.0F;
+
+    protected float height = 0.0F;
+    protected float left = 0.0F;
+    protected float top = 0.0F;
+    protected float width = 0.0F;
+
     protected int mProgram;
     protected FloatBuffer textureBuffer;
     private int[] textures = new int[1];
-    private float top = 0.0F;
+
     protected FloatBuffer vertexBuffer;
-    private float width = 0.0F;
+
 
     public Sprite(float paramFloat1, float paramFloat2, float paramFloat3, float paramFloat4, Bitmap paramBitmap)
     {
         this(paramFloat1, paramFloat2, paramFloat3, paramFloat4, paramBitmap, null);
     }
 
-    public Sprite(float left, float top, float width, float height, Bitmap textureImage, Rect textureArea)
+    public Sprite(float left, float top, float width, float height, Bitmap textureImage, Rect textureArea){
+        this(left, top, width, height, textureImage, textureArea, false);
+    }
+
+    public Sprite(float left, float top, float width, float height, Bitmap textureImage, Rect textureArea, boolean reload)
     {
         this.height = height;
         this.top = top;
@@ -90,10 +98,10 @@ public abstract class Sprite
         if(textureArea != null){
             Bitmap textureBitmap = Bitmap.createBitmap(textureImage, textureArea.left, textureArea.top,
                     textureArea.width(), textureArea.height());
-            loadGLTexture(textureBitmap);
+            loadGLTexture(textureBitmap, reload);
             textureBitmap.recycle();
         }else{
-            loadGLTexture(textureImage);
+            loadGLTexture(textureImage, reload);
         }
 
         int vertexShader = GameRender.loadShader(GLES20.GL_VERTEX_SHADER,
@@ -140,15 +148,20 @@ public abstract class Sprite
 
     abstract int getCurrentTextureIndex();
 
-    public void loadGLTexture(Bitmap bitmap) {
-        if ((getCurrentTextureIndex() != -1) || (bitmap == null)) {
+    public void loadGLTexture(Bitmap bitmap, boolean reload) {
+        if (getCurrentTextureIndex() != -1 && !reload || bitmap == null) {
             return;
         }
         // loading texture
         GLES20.glGenTextures(1, textures, 0);
-        setCurrentTextureIndex(textureIndex);
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + getCurrentTextureIndex());
-        textureIndex += 1;
+        if(!reload || getCurrentTextureIndex() == -1){ // first time load
+            setCurrentTextureIndex(textureIndex);
+            GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + getCurrentTextureIndex());
+            textureIndex += 1;
+        }else{
+            GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + getCurrentTextureIndex());
+        }
+
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[0]);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);

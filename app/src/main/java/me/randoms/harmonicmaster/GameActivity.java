@@ -205,7 +205,10 @@ public class GameActivity extends Activity {
     @Override
     protected void onStop() {
         super.onStop();
-        dispatcher.stop();
+        try {
+            dispatcher.stop();
+        }catch (Exception e){e.printStackTrace();}
+
     }
 
     public void updateCurrentTone(final int tonename){

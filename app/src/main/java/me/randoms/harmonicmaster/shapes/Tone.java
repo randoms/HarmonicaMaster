@@ -1,19 +1,8 @@
 package me.randoms.harmonicmaster.shapes;
 
-import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
-
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
-import java.nio.ShortBuffer;
-
-import me.randoms.harmonicmaster.R;
-import me.randoms.harmonicmaster.render.GameRender;
-import me.randoms.harmonicmaster.utils.MGLUtils;
 
 /**
  * Created by randoms on 15-11-26.
@@ -27,10 +16,6 @@ public class Tone extends Sprite{
     private int toneName = 0;
     private boolean isD = false;
 
-
-
-    private float height = 128;
-    private float top = 0;
 
     // texture related
     private static int textureList[] = null;
@@ -82,18 +67,26 @@ public class Tone extends Sprite{
         isActive = active;
     }
 
-    public static void loadGLTexture(Bitmap[] textureImages) {
-        if(textureList != null)
+    public static void loadGLTexture(Bitmap[] textureImages, boolean reload) {
+        if(textureList != null && !reload || textureImages == null)
             return; // already loaded
         int[] textures = new int[1];
-        textureList = new int[3];
+        boolean firstTimeLoadFlag = false;
+        if(textureList == null){
+            firstTimeLoadFlag = true;
+            textureList = new int[3];
+        }
         // loading texture
         int count = 0;
         for(Bitmap image: textureImages){
             GLES20.glGenTextures(1, textures, 0);
-            textureList[count] = getTextureIndex();
-            addTextureIndex();
-            GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + textureList[count]);
+            if(!reload || firstTimeLoadFlag){
+                textureList[count] = getTextureIndex();
+                addTextureIndex();
+                GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + textureList[count]);
+            }else{
+                GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + textureList[count]);
+            }
             count ++;
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[0]);
 
@@ -127,8 +120,8 @@ public class Tone extends Sprite{
     }
 
     public static Tone create(float left, float top, float height, int toneName, boolean isD, Bitmap[] textures){
-        Tone.loadGLTexture(textures);
-        Tone res = new Tone(left, top, height, toneName, isD);
-        return res;
+        if(textures != null)
+            Tone.loadGLTexture(textures, false);
+        return new Tone(left, top, height, toneName, isD);
     }
 }

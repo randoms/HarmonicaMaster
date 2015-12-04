@@ -80,10 +80,11 @@ public class GameRender implements GLSurfaceView.Renderer {
         mBottomBg = BottomBackground.create(mContext);
         title = Title.create(mContext);
         // create tones
-        /*Bitmap toneBitmap = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.tone);
+        Bitmap toneBitmap = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.tone);
         Bitmap tonedBitmap = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.toned);
         Bitmap toneActiveBitmap = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.activetone1);
         Bitmap[] toneTextures = new Bitmap[]{toneBitmap, tonedBitmap, toneActiveBitmap};
+        Tone.loadGLTexture(toneTextures, true);
         for(Sound sound : sounds){
             int speed = 128;
             float top = -speed*(float)sound.getEnd()/1000f;
@@ -91,14 +92,14 @@ public class GameRender implements GLSurfaceView.Renderer {
             int soundIndex = sound.getName()-1;
             if(sound.getName()-1 > 0 && sound.getName()-1 < instrumentTones.length && instrumentTones[soundIndex] != null){
                 float left =  80*(instrumentTones[soundIndex].positon) + 4; // name begins from 1
-                toneList.add(Tone.create(left, top, bottom - top, sound.getName(), instrumentTones[soundIndex].isD, toneTextures));
+                toneList.add(Tone.create(left, top, bottom - top, sound.getName(), instrumentTones[soundIndex].isD, null));
             }else {
                 toneList.add(null);
             }
         }
         for(Bitmap image: toneTextures){
             image.recycle();
-        }*/
+        }
 
         // create active tones
         Bitmap activeToneImage = BitmapFactory.decodeResource(mContext.getResources(),
@@ -107,11 +108,12 @@ public class GameRender implements GLSurfaceView.Renderer {
             if (instrumentTone != null) {
                 float top = 600;
                 float left = 80 * instrumentTone.positon + 4;
-                activeToneList.add(new ActiveTone(activeToneImage,left, top));
+                activeToneList.add(new ActiveTone(null,left, top));
             } else {
                 activeToneList.add(null);
             }
         }
+        activeToneList.get(24).loadGLTexture(activeToneImage, true);
         activeToneImage.recycle();
 
     }
@@ -141,7 +143,7 @@ public class GameRender implements GLSurfaceView.Renderer {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
         mBg.draw(mStaticViewMatrix);
         title.draw(mStaticViewMatrix);
-        /*boolean noToneFlag = true;
+        boolean noToneFlag = true;
         for(int count = 0; count < toneList.size();count ++){
             if(toneList.get(count) == null){
                 mContext.updateCurrentTone(-1);
@@ -171,11 +173,11 @@ public class GameRender implements GLSurfaceView.Renderer {
             }
 
             toneList.get(count).draw(mViewMatrix);
-        }*/
+        }
         mBottomBg.draw(mStaticViewMatrix);
 
-        //if(noToneFlag)
-        //    mContext.updateCurrentTone(-1);
+        if(noToneFlag)
+            mContext.updateCurrentTone(-1);
         // draw active tone
         if(currentActiveTone != -1){
             if(activeToneList.get(currentActiveTone - 1) != null)

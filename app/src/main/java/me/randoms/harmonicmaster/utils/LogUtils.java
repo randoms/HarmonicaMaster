@@ -13,7 +13,15 @@ public class LogUtils {
         return res + "]";
     }
 
-    public static<T> String tostring( float[] data){
+    public static String tostring( float[] data){
+        String res = "[ ";
+        for(int i=0;i<data.length;i++){
+            res += Float.toString(data[i]) + ", ";
+        }
+        return res + "]";
+    }
+
+    public static String tostring( int[] data){
         String res = "[ ";
         for(int i=0;i<data.length;i++){
             res += Float.toString(data[i]) + ", ";
