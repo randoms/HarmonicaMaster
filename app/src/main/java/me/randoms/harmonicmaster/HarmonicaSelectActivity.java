@@ -1,10 +1,8 @@
 package me.randoms.harmonicmaster;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 
@@ -24,7 +22,7 @@ public class HarmonicaSelectActivity extends Activity {
             public void onClick(View v) {
                 SharedPreferences.Editor editor = prefs.edit();
                 editor.putInt(Statics.HARMONIC_TYPE , Statics.TEN);
-                editor.commit();
+                editor.apply();
                 finish();
             }
         });
@@ -34,7 +32,7 @@ public class HarmonicaSelectActivity extends Activity {
             public void onClick(View v) {
                 SharedPreferences.Editor editor = prefs.edit();
                 editor.putInt(Statics.HARMONIC_TYPE , Statics.TWELVE);
-                editor.commit();
+                editor.apply();
                 finish();
             }
         });
@@ -43,8 +41,8 @@ public class HarmonicaSelectActivity extends Activity {
             @Override
             public void onClick(View v) {
                 SharedPreferences.Editor editor = prefs.edit();
-                editor.putInt(Statics.HARMONIC_TYPE , Statics.TWENTYFOUR);
-                editor.commit();
+                editor.putInt(Statics.HARMONIC_TYPE , Statics.TWENTY_FOUR);
+                editor.apply();
                 finish();
             }
         });

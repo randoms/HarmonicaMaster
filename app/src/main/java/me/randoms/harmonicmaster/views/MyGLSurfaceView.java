@@ -6,9 +6,9 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 
 import me.randoms.harmonicmaster.GameActivity;
-import me.randoms.harmonicmaster.json.JSONObject;
+import me.randoms.harmonicmaster.models.Music;
 import me.randoms.harmonicmaster.models.ToneModel;
-import me.randoms.harmonicmaster.render.MyGLRenderer;
+import me.randoms.harmonicmaster.render.GameRender;
 
 /**
  * Created by randoms on 15-11-26.
@@ -16,9 +16,7 @@ import me.randoms.harmonicmaster.render.MyGLRenderer;
  */
 public class MyGLSurfaceView extends GLSurfaceView{
 
-    private MyGLRenderer mRenderer;
-    private Context mContext;
-    private GameActivity gameActivity;
+    private GameRender mRenderer;
     private int score = 0;
     private boolean gameoverFlag = false;
     private Runnable gameoverHandler = null;
@@ -27,19 +25,16 @@ public class MyGLSurfaceView extends GLSurfaceView{
 
     public MyGLSurfaceView(Context context){
         super(context);
-        mContext = context;
     }
 
     //XML inflation/instantiation
     public MyGLSurfaceView(Context context, AttributeSet attrs)
     {
         super(context, attrs);
-        mContext = context;
     }
 
-    public void start(JSONObject musicJson, ToneModel[] tonelist, GameActivity gameActivity){
-        this.gameActivity = gameActivity;
-        mRenderer = new MyGLRenderer(gameActivity, musicJson, tonelist);
+    public void start(Music musicJson, ToneModel[] tonelist, GameActivity gameActivity){
+        mRenderer = new GameRender(gameActivity, musicJson, tonelist);
         // Create an OpenGL ES 2.0 context
         setEGLContextClientVersion(2);
         setRenderer(mRenderer);

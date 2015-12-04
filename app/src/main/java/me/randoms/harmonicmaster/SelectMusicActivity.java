@@ -1,16 +1,16 @@
 package me.randoms.harmonicmaster;
 
-import me.randoms.harmonicmaster.adapter.MusicListAdapter;
-import me.randoms.harmonicmaster.utils.Statics;
-import me.randoms.harmonicmaster.utils.Utils;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.View;
 import android.widget.ListView;
+
+import me.randoms.harmonicmaster.adapter.MusicListAdapter;
+import me.randoms.harmonicmaster.utils.Statics;
+import me.randoms.harmonicmaster.utils.Utils;
 
 public class SelectMusicActivity extends Activity{
 
@@ -20,7 +20,7 @@ public class SelectMusicActivity extends Activity{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_select_music);
 		ListView musicListView = (ListView)findViewById(R.id.musicSheetList);
-		MusicListAdapter mAdapter = new MusicListAdapter(this,Utils.getMusicSheets(this));
+		MusicListAdapter mAdapter = new MusicListAdapter(this,Utils.getMusicSheets());
 		musicListView.setAdapter(mAdapter);
 		musicListView.setOnItemClickListener(mAdapter);
 
@@ -29,7 +29,7 @@ public class SelectMusicActivity extends Activity{
             // first time start
             SharedPreferences.Editor editor = prefs.edit();
             editor.putBoolean(Statics.FIRST_TIME_FLAG, false);
-            editor.commit();
+            editor.apply();
             Intent intent = new Intent(this, HarmonicaSelectActivity.class);
             startActivity(intent);
         }

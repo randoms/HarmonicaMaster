@@ -5,6 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.google.gson.Gson;
 import com.leff.midi.MidiFile;
 import com.leff.midi.MidiTrack;
 import com.leff.midi.event.MidiEvent;
@@ -40,7 +41,7 @@ public class MidiTestActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        MidiTrack track = midi.getTracks().get(0);
+        //MidiTrack track = midi.getTracks().get(0);
         Log.d("midi length", midi.getLengthInTicks() +"");
         Log.d("midi tracks", midi.getTrackCount() + "");
         Log.d("midi resolution", midi.getResolution() + "");
@@ -53,9 +54,7 @@ public class MidiTestActivity extends AppCompatActivity {
                 if(event instanceof ProgramChange){
                     ProgramChange programChange = (ProgramChange)event;
                     Log.d("HERE", "That's it" +programChange.getProgramNumber());
-                    if(programChange.getProgramNumber() == 23){
 
-                    }
                 }
             }
         }

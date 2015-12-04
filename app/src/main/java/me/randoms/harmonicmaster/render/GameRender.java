@@ -1,10 +1,11 @@
 package me.randoms.harmonicmaster.render;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.os.SystemClock;
-import android.util.Log;
 
 import java.util.ArrayList;
 
@@ -12,8 +13,9 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 import me.randoms.harmonicmaster.GameActivity;
-import me.randoms.harmonicmaster.json.JSONArray;
-import me.randoms.harmonicmaster.json.JSONObject;
+import me.randoms.harmonicmaster.R;
+import me.randoms.harmonicmaster.models.Music;
+import me.randoms.harmonicmaster.models.Sound;
 import me.randoms.harmonicmaster.models.ToneModel;
 import me.randoms.harmonicmaster.shapes.ActiveTone;
 import me.randoms.harmonicmaster.shapes.Background;
@@ -26,7 +28,7 @@ import me.randoms.harmonicmaster.utils.MGLUtils;
  * Created by randoms on 15-11-26.
  * In package me.randoms.harmonicmaster.render
  */
-public class MyGLRenderer implements GLSurfaceView.Renderer {
+public class GameRender implements GLSurfaceView.Renderer {
 
     /**
      * shapes
@@ -35,14 +37,14 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     private Title title;
     private BottomBackground mBottomBg;
     private ArrayList<Tone> toneList = new ArrayList<>();
-    private ToneModel[] bottomToneList;
+    private ToneModel[] instrumentTones;
     private ArrayList<ActiveTone> activeToneList = new ArrayList<>();
     private int currentActiveTone = -1;
 
     /**
      * music file related
      */
-    private JSONArray music;
+    private ArrayList<Sound> sounds;
     private long musicLength;
 
     /**
@@ -52,10 +54,6 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     private long gameTime = 0;
     private boolean paused = false;
 
-    /**
-     * game score
-     */
-    private float checkLinePosYinPix = 512f;
     private boolean isMatched = false;
     private boolean isGameOver = false;
 
@@ -63,57 +61,62 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     private final float[] mViewMatrix = new float[16];
     private final float[] mStaticViewMatrix = new float[16];
     private GameActivity mContext;
-    private JSONObject musicData;
 
 
-    public MyGLRenderer(GameActivity mContext, JSONObject musicJson, ToneModel[] bottomToneList){
+    public GameRender(GameActivity mContext, Music music, ToneModel[] instrumentTones){
         this.mContext = mContext;
-        musicData = musicJson;
-        music = musicData.getJSONArray("sounds");
-        musicLength = musicData.getLong("length");
-        this.bottomToneList = bottomToneList;
+        this.sounds =  music.getSounds();
+        musicLength = music.getLength();
+        this.instrumentTones = instrumentTones;
     }
 
 
     public void onSurfaceCreated(GL10 unused, EGLConfig config) {
         // Set the background frame color
-        GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        GLES20.glClearColor(0f, 0f, 0f, 1.0f);
         GLES20.glEnable(GLES20.GL_BLEND);
         GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
-        mBg = new Background(mContext);
-        mBottomBg = new BottomBackground(mContext);
-        title = new Title(mContext);
+        mBg = Background.create(mContext);
+        mBottomBg = BottomBackground.create(mContext);
+        title = Title.create(mContext);
         // create tones
-        for(int count = 0;count<music.length();count ++){
-            JSONObject sound = music.getJSONObject(count);
+        /*Bitmap toneBitmap = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.tone);
+        Bitmap tonedBitmap = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.toned);
+        Bitmap toneActiveBitmap = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.activetone1);
+        Bitmap[] toneTextures = new Bitmap[]{toneBitmap, tonedBitmap, toneActiveBitmap};
+        for(Sound sound : sounds){
             int speed = 128;
-            float top = -speed*(float)sound.getLong("end")/1000f;
-            float bottom = -speed*(float)sound.getLong("start")/1000f;
-            if(sound.getInt("name")-1 > 0 && sound.getInt("name")-1 < bottomToneList.length && bottomToneList[sound.getInt("name")-1] != null){
-                float left =  80*(bottomToneList[sound.getInt("name")-1].positon) + 4; // name begins from 1
-                toneList.add(new Tone(mContext, left, top, bottom - top, sound.getInt("name"), bottomToneList[sound.getInt("name")-1].isD));
+            float top = -speed*(float)sound.getEnd()/1000f;
+            float bottom = -speed*(float)sound.getStart()/1000f;
+            int soundIndex = sound.getName()-1;
+            if(sound.getName()-1 > 0 && sound.getName()-1 < instrumentTones.length && instrumentTones[soundIndex] != null){
+                float left =  80*(instrumentTones[soundIndex].positon) + 4; // name begins from 1
+                toneList.add(Tone.create(left, top, bottom - top, sound.getName(), instrumentTones[soundIndex].isD, toneTextures));
             }else {
                 toneList.add(null);
             }
         }
+        for(Bitmap image: toneTextures){
+            image.recycle();
+        }*/
 
         // create active tones
-        for(int count = 0; count<bottomToneList.length;count++){
-            if(bottomToneList[count] != null){
+        Bitmap activeToneImage = BitmapFactory.decodeResource(mContext.getResources(),
+                R.drawable.activetone);
+        for(ToneModel instrumentTone : instrumentTones) {
+            if (instrumentTone != null) {
                 float top = 600;
-                float height = 128;
-                float left = 80 * bottomToneList[count].positon + 4;
-                activeToneList.add(new ActiveTone(mContext, left, top, height));
-            }else {
+                float left = 80 * instrumentTone.positon + 4;
+                activeToneList.add(new ActiveTone(activeToneImage,left, top));
+            } else {
                 activeToneList.add(null);
             }
         }
+        activeToneImage.recycle();
 
     }
 
     public void onDrawFrame(GL10 unused) {
-
-        float[] scratch = new float[16];
 
         // Set the camera position (View matrix)
         if(lastUpdateTime == 0 || paused){
@@ -138,7 +141,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
         mBg.draw(mStaticViewMatrix);
         title.draw(mStaticViewMatrix);
-        boolean noToneFlag = true;
+        /*boolean noToneFlag = true;
         for(int count = 0; count < toneList.size();count ++){
             if(toneList.get(count) == null){
                 mContext.updateCurrentTone(-1);
@@ -148,7 +151,8 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
                 continue; // out of camera range
             }
             Tone currentTone = toneList.get(count);
-            if(currentTone.getTonename() == currentActiveTone
+            float checkLinePosYinPix = 512f;
+            if(currentTone.getToneName() == currentActiveTone
                     && currentTone.getBottom() > cameraPoxYinPix + (checkLinePosYinPix - 720/2)
                     && currentTone.getTop() < cameraPoxYinPix + (checkLinePosYinPix - 720/2)){
                 currentTone.setActive(true);
@@ -158,7 +162,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
             // draw tone name string
             if(currentTone.getBottom() > cameraPoxYinPix + (checkLinePosYinPix - 720/2)
                     && currentTone.getTop() < cameraPoxYinPix + (checkLinePosYinPix - 720/2)){
-                mContext.updateCurrentTone(currentTone.getTonename() - 1);
+                mContext.updateCurrentTone(currentTone.getToneName() - 1);
                 noToneFlag = false;
             }
             else{
@@ -167,11 +171,11 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
             }
 
             toneList.get(count).draw(mViewMatrix);
-        }
+        }*/
         mBottomBg.draw(mStaticViewMatrix);
 
-        if(noToneFlag)
-            mContext.updateCurrentTone(-1);
+        //if(noToneFlag)
+        //    mContext.updateCurrentTone(-1);
         // draw active tone
         if(currentActiveTone != -1){
             if(activeToneList.get(currentActiveTone - 1) != null)

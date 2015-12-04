@@ -1,7 +1,5 @@
 package me.randoms.harmonicmaster.models;
 
-import com.leff.midi.event.ProgramChange;
-
 /**
  * Created by randoms on 15-12-2.
  * In package me.randoms.harmonicmaster.models

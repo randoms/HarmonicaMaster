@@ -1,13 +1,5 @@
 package me.randoms.harmonicmaster.adapter;
 
-import me.randoms.harmonicmaster.GameActivity;
-import me.randoms.harmonicmaster.PlayActivity;
-import me.randoms.harmonicmaster.R;
-import me.randoms.harmonicmaster.SelectTrackActivity;
-import me.randoms.harmonicmaster.json.JSONObject;
-
-import org.joda.time.LocalDateTime;
-
 import android.content.Context;
 import android.content.Intent;
 import android.view.LayoutInflater;
@@ -18,16 +10,25 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
+import org.joda.time.LocalDateTime;
+
+import java.util.ArrayList;
+
+import me.randoms.harmonicmaster.GameActivity;
+import me.randoms.harmonicmaster.R;
+import me.randoms.harmonicmaster.SelectTrackActivity;
+import me.randoms.harmonicmaster.models.Music;
+
 public class MusicListAdapter extends BaseAdapter 
 	implements OnItemClickListener {
 	
-	private JSONObject[] musicList;
+	private ArrayList<Music> musicList;
 	private Context context;
 	
-	public MusicListAdapter(Context mContext,JSONObject[] mMusicList){
+	public MusicListAdapter(Context mContext,ArrayList<Music> mMusicList){
 		musicList = mMusicList;
 		if(mMusicList == null){
-			musicList = new JSONObject[]{};
+			musicList = new ArrayList<>();
 		}
 		context = mContext;
 	}
@@ -35,13 +36,13 @@ public class MusicListAdapter extends BaseAdapter
 	@Override
 	public int getCount() {
 		// TODO Auto-generated method stub
-		return musicList.length;
+		return musicList.size();
 	}
 
 	@Override
 	public Object getItem(int position) {
 		// TODO Auto-generated method stub
-		return musicList[position];
+		return musicList.get(position);
 	}
 
 	@Override
@@ -63,13 +64,13 @@ public class MusicListAdapter extends BaseAdapter
 		TextView author = (TextView)mView.findViewById(R.id.author);
 		TextView createTime = (TextView)mView.findViewById(R.id.createTime);
 		TextView length = (TextView)mView.findViewById(R.id.length);
-		title.setText(musicList[position].getString("name"));
-		author.setText(musicList[position].getString("author"));
-		LocalDateTime date = new LocalDateTime(musicList[position].getLong("time"));
+		title.setText(musicList.get(position).getName());
+		author.setText(musicList.get(position).getAuthor());
+		LocalDateTime date = new LocalDateTime(musicList.get(position).getTime());
 		String dateString = String.valueOf(date.toString("YY-MM-dd HH:MM:SS"));
 		
 		createTime.setText(dateString);
-		long musicLength = musicList[position].getLong("length");
+		long musicLength = musicList.get(position).getLength();
 		String musicLengthStr = String.valueOf(musicLength/1000/60)+"m "+String.valueOf(musicLength/1000%60) + "s";
 		length.setText(musicLengthStr);
 		return mView;
@@ -80,15 +81,15 @@ public class MusicListAdapter extends BaseAdapter
 			long id) {
 		// TODO Auto-generated method stub
         Intent mIntent;
-        if(musicList[position].has("tracks")){
+        if(musicList.get(position).getTracks() != null){
             // midi file
             mIntent = new Intent(parent.getContext(), SelectTrackActivity.class);
-            mIntent.putExtra("midiName", musicList[position].getString("name"));
+            mIntent.putExtra("midiName", musicList.get(position).getName());
         }else{
             mIntent = new Intent(parent.getContext(),GameActivity.class);
         }
 
-		mIntent.putExtra("uuid", musicList[position].getString("id"));
+		mIntent.putExtra("uuid", musicList.get(position).getId());
 		context.startActivity(mIntent);
 	}
 	

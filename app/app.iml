@@ -94,5 +94,6 @@
     <orderEntry type="library" exported="" name="Jama-1.0.3" level="project" />
     <orderEntry type="library" exported="" name="TarsosDSP-Android-2.3" level="project" />
     <orderEntry type="library" exported="" name="joda-time-2.3" level="project" />
+    <orderEntry type="library" exported="" name="gson-2.5" level="project" />
   </component>
 </module>

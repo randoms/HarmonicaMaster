@@ -18,7 +18,7 @@ public final class Statics {
     public static String HARMONIC_TYPE = "harmonic_type";
     public static int TEN = 10;
     public static int TWELVE = 12;
-    public static int TWENTYFOUR = 24;
+    public static int TWENTY_FOUR = 24;
     public static String FIRST_TIME_FLAG = "first_time_start_flag";
 
     public static String[] TONE_NAME = {

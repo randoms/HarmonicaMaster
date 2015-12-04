@@ -1,5 +1,8 @@
 package me.randoms.harmonicmaster.utils;
 
+import android.graphics.Bitmap;
+import android.graphics.Rect;
+
 /**
  * Created by randoms on 15-11-26.
  * In package me.randoms.harmonicmaster.utils
@@ -7,10 +10,10 @@ package me.randoms.harmonicmaster.utils;
 public class MGLUtils {
     /**
      * screen 1280x720 virtual resolution
-     * transfrom single point
+     * transform single point
      * @return
      */
-    public static float[] transformCordinate(float[] pos){
+    public static float[] transformCoordinate(float[] pos){
         float x = pos[0]/1280*2 - 1;
         float y = -pos[1]/720*2 +1;
         return new float[]{x,y};
@@ -21,10 +24,10 @@ public class MGLUtils {
      * @param pos
      * @return
      */
-    public static float[] transformCordinateList(float[] pos){
+    public static float[] transformCoordinateList(float[] pos){
         float [] res = new float[pos.length];
         for(int i =0;i<pos.length/3;i++){
-            float[] newPos = transformCordinate(new float[]{pos[3*i], pos[3*i+1]});
+            float[] newPos = transformCoordinate(new float[]{pos[3*i], pos[3*i+1]});
             res[3*i] = newPos[0];
             res[3*i + 1] = newPos[1];
             res[3*i + 2] = 0f;

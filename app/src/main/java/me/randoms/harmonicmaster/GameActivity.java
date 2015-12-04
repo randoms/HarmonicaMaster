@@ -2,7 +2,6 @@ package me.randoms.harmonicmaster;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
-import android.media.Image;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
@@ -12,10 +11,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import java.util.ArrayList;
 
 import be.tarsos.dsp.AudioDispatcher;
 import be.tarsos.dsp.AudioEvent;
@@ -24,8 +24,8 @@ import be.tarsos.dsp.io.android.AudioDispatcherFactory;
 import be.tarsos.dsp.pitch.PitchDetectionHandler;
 import be.tarsos.dsp.pitch.PitchDetectionResult;
 import be.tarsos.dsp.pitch.PitchProcessor;
-import me.randoms.harmonicmaster.json.JSONObject;
 import me.randoms.harmonicmaster.models.Harmonic10;
+import me.randoms.harmonicmaster.models.Music;
 import me.randoms.harmonicmaster.models.ToneModel;
 import me.randoms.harmonicmaster.utils.Statics;
 import me.randoms.harmonicmaster.utils.Utils;
@@ -35,7 +35,7 @@ public class GameActivity extends Activity {
 
     private MyGLSurfaceView mGLView;
     private TextView scoreView;
-    private JSONObject musicJson;
+    private Music music;
     private AudioDispatcher dispatcher;
     private ToneModel[] toneList;
     private int previousTone = -1;
@@ -52,12 +52,9 @@ public class GameActivity extends Activity {
     // pauseViews
     private View pauseView;
     private TextView pauseTitleView;
-    private ImageView pauseStartView;
 
-    // gameover view
+    // game over view
     private View gameOverView;
-    private ImageView gameOverStart;
-    private ImageView gameOverExit;
 
     private DisplayMetrics metrics;
 
@@ -68,7 +65,7 @@ public class GameActivity extends Activity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_game);
-        musicJson = getMusic();
+        music = getMusic();
         mGLView = (MyGLSurfaceView)findViewById(R.id.game);
         scoreView = (TextView)findViewById(R.id.score);
         mGLView.setUpdateScoreHandler(new Runnable() {
@@ -77,7 +74,7 @@ public class GameActivity extends Activity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        scoreView.setText(mGLView.getScore() + "");
+                        scoreView.setText(String.valueOf(mGLView.getScore()));
                     }
                 });
             }
@@ -97,12 +94,12 @@ public class GameActivity extends Activity {
         toneView = (TextView) findViewById(R.id.tone);
 
         pauseView = findViewById(R.id.pauseView);
-        pauseStartView = (ImageView)findViewById(R.id.start);
+        ImageView pauseStartView = (ImageView)findViewById(R.id.start);
         pauseTitleView = (TextView)findViewById(R.id.title);
 
         gameOverView = findViewById(R.id.gameOverView);
-        gameOverStart = (ImageView) findViewById(R.id.gameOverStart);
-        gameOverExit = (ImageView) findViewById(R.id.gameOverExit);
+        ImageView gameOverStart = (ImageView) findViewById(R.id.gameOverStart);
+        ImageView gameOverExit = (ImageView) findViewById(R.id.gameOverExit);
 
 
         gameOverExit.setOnClickListener(new View.OnClickListener() {
@@ -140,7 +137,7 @@ public class GameActivity extends Activity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        pauseTitleView.setText(musicJson.getString("name"));
+                        pauseTitleView.setText(music.getName());
                         pauseView.setVisibility(View.VISIBLE);
                     }
                 });
@@ -167,7 +164,7 @@ public class GameActivity extends Activity {
             }
         });
 
-        mGLView.start(musicJson, toneList, this);
+        mGLView.start(music, toneList, this);
 
         dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(22050, 1024, 0);
 
@@ -193,12 +190,12 @@ public class GameActivity extends Activity {
     }
 
 
-    public JSONObject getMusic(){
-        JSONObject[] musicList = Utils.getMusicSheets(this);
+    public Music getMusic(){
+        ArrayList<Music> musicList = Utils.getMusicSheets();
         String uuid = getIntent().getStringExtra("uuid");
-        for(int i=0;i<musicList.length;i++){
-            if(musicList[i].getString("id").equals(uuid)){
-                return musicList[i];
+        for(Music music : musicList){
+            if(music.getId().equals(uuid)){
+                return music;
             }
         }
         finish(); // no valid music found

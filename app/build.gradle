@@ -24,6 +24,7 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.1.1'
     compile 'com.android.support:design:23.1.1'
+    compile 'com.google.code.gson:gson:2.5'
     compile files('libs/Jama-1.0.3.jar')
     compile files('libs/joda-time-2.3.jar')
     compile files('libs/systembartint-1.0.3.jar')

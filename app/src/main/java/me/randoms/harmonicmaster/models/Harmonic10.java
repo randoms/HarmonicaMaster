@@ -1,9 +1,5 @@
 package me.randoms.harmonicmaster.models;
 
-import java.util.ArrayList;
-
-import me.randoms.harmonicmaster.shapes.Tone;
-
 /**
  * Created by randoms on 15-11-30.
  * In package me.randoms.harmonicmaster.models
