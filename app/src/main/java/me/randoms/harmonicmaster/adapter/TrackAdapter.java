@@ -107,7 +107,7 @@ public class TrackAdapter extends BaseAdapter {
             if(music.getId().equals(uuid)){
                 String filename = ((SelectTrackActivity)context).getIntent().getStringExtra("midiName");
                 String root = Environment.getExternalStorageDirectory().getPath();
-                Music midiData =  Midi.getMidiTracks(new File(root+ Statics.BASE_DIR+"/midi/" + filename), position);
+                Music midiData =  Midi.getMidiTracks(new File(root+ Statics.BASE_DIR+"/midi/" + filename), position, true);
                 mIntent.putExtra("midFilePath", root+ Statics.BASE_DIR+"/midi/" + filename);
                 mIntent.putExtra("trackIndex", position);
                 if(midiData != null)

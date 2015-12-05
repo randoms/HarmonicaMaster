@@ -1,6 +1,8 @@
 package me.randoms.harmonicmaster.utils;
 
 
+import android.util.Log;
+
 import com.leff.midi.MidiFile;
 import com.leff.midi.MidiTrack;
 import com.leff.midi.event.MidiEvent;
@@ -90,18 +92,18 @@ public class Midi {
         musicData.setName(file.getName());
         musicData.setId(UUID.randomUUID().toString());
         MidiTrack track0 = midiFile.getTracks().get(0);
+        ArrayList<Tempo> tempos = new ArrayList<>();
         float bpm = 120;
         for (MidiEvent event : track0.getEvents()){
             if(event instanceof Tempo){
                 Tempo tempo = (Tempo)event;
                 bpm = tempo.getBpm();
+                Log.d("music", "another bpm " + bpm);
+                break;
             }
         }
         float tickTime = 60*1000/(midiFile.getResolution() * bpm);
         long length = (long)(midiFile.getLengthInTicks() * tickTime);
-
-        musicData.setLength(length);
-
         ArrayList<Sound> soundList = new ArrayList<>();
         MidiTrack track1;
         if(changeTone)
@@ -118,6 +120,9 @@ public class Midi {
                 totalTone += noteOn.getNoteValue();
             }
         }
+
+        musicData.setLength(length);
+
         int distanceFormCenter;
         int distanceToAdd = 0;
         if(totalSound != 0){
@@ -126,7 +131,16 @@ public class Midi {
         }
         boolean isLastStillOn = false;
         for (MidiEvent event : track1.getEvents()){
-            //TODO 这里需要测试
+
+            /*if(event instanceof Tempo){
+                Tempo tempo = (Tempo)event;
+                bpm = tempo.getBpm();
+                Log.d("music", "another bpm " + bpm);
+                Log.d("music", "another bpm " + bpm + " " +tempo.getTick());
+                bpm = 120;
+                tickTime = 60*1000/(midiFile.getResolution() * bpm);
+            }*/
+
             if(event instanceof NoteOff || event instanceof NoteOn){
 
                 if(isLastStillOn){
@@ -221,6 +235,10 @@ public class Midi {
             }
             newTrack.insertEvent(event);
         }
+        Log.d("music", "minBadCountIndex " + minBadCountIndex);
+        Log.d("music", "originTonilty " + originTonilty);
+        Log.d("music", "badTonesCount " + LogUtils.tostring(badTonesCount) );
+
         return newTrack;
     }
 }
