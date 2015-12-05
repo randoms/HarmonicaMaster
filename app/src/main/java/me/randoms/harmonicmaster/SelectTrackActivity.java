@@ -30,6 +30,5 @@ public class SelectTrackActivity extends Activity {
             trackList = midiData.getTracks();
         TrackAdapter trackAdapter = new TrackAdapter(this, trackList);
         selectTrackList.setAdapter(trackAdapter);
-        selectTrackList.setOnItemClickListener(trackAdapter);
     }
 }

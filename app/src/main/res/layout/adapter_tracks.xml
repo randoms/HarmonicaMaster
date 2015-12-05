@@ -26,4 +26,17 @@
         android:gravity="right"
         android:textColor="#fff"
         android:id="@+id/soundNum"/>
+    <ImageView
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:src="@drawable/music"
+        android:layout_marginLeft="20dp"
+        android:id="@+id/listen"
+        android:padding="12dp"/>
+    <ImageView
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:src="@drawable/play"
+        android:id="@+id/play"
+        android:padding="12dp"/>
 </LinearLayout>

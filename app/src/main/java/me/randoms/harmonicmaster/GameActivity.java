@@ -2,6 +2,7 @@ package me.randoms.harmonicmaster;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
@@ -15,7 +16,18 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.leff.midi.MidiFile;
+import com.leff.midi.MidiTrack;
+import com.leff.midi.event.MidiEvent;
+import com.leff.midi.event.ProgramChange;
+import com.leff.midi.event.meta.Tempo;
+import com.leff.midi.event.meta.TimeSignature;
+
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 import be.tarsos.dsp.AudioDispatcher;
 import be.tarsos.dsp.AudioEvent;
@@ -27,6 +39,7 @@ import be.tarsos.dsp.pitch.PitchProcessor;
 import me.randoms.harmonicmaster.models.Harmonic10;
 import me.randoms.harmonicmaster.models.Music;
 import me.randoms.harmonicmaster.models.ToneModel;
+import me.randoms.harmonicmaster.utils.Midi;
 import me.randoms.harmonicmaster.utils.Statics;
 import me.randoms.harmonicmaster.utils.Utils;
 import me.randoms.harmonicmaster.views.MyGLSurfaceView;
@@ -57,6 +70,7 @@ public class GameActivity extends Activity {
     private View gameOverView;
 
     private DisplayMetrics metrics;
+    private MediaPlayer mp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -139,6 +153,9 @@ public class GameActivity extends Activity {
                     public void run() {
                         pauseTitleView.setText(music.getName());
                         pauseView.setVisibility(View.VISIBLE);
+                        if(mp != null && mp.isPlaying()){
+                            mp.pause();
+                        }
                     }
                 });
             }
@@ -160,12 +177,14 @@ public class GameActivity extends Activity {
             @Override
             public void onClick(View v) {
                 pauseView.setVisibility(View.GONE);
-                mGLView.resume();
+                mGLView.resume(mp.getCurrentPosition() + 512*1000/128);
+                if(mp != null && !mp.isPlaying()){
+                    mp.start();
+                }
             }
         });
 
         mGLView.start(music, toneList, this);
-
         dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(22050, 1024, 0);
 
         PitchDetectionHandler pdh = new PitchDetectionHandler() {
@@ -186,9 +205,70 @@ public class GameActivity extends Activity {
         };
         AudioProcessor p = new PitchProcessor(PitchProcessor.PitchEstimationAlgorithm.FFT_YIN, 22050, 1024, pdh);
         dispatcher.addAudioProcessor(p);
-        new Thread(dispatcher,"Audio Dispatcher").start();
+
+        // start music or start microphone
+        if(getIntent().getBooleanExtra("playMusic", false)){
+            playCurrentMid();
+        }else{
+            new Thread(dispatcher,"Audio Dispatcher").start();
+        }
     }
 
+    private void playCurrentMid(){
+        String midFilePath = getIntent().getStringExtra("midFilePath");
+        int trackIndex = getIntent().getIntExtra("trackIndex", -1);
+        if(trackIndex == -1)
+            return;
+        File outputDir = getCacheDir(); // context being the Activity pointer
+        File outputFile;
+        MidiFile orginMidFile;
+        try{
+            outputFile= File.createTempFile("temp", "mid", outputDir);
+            orginMidFile = new MidiFile(new File(midFilePath));
+            int resolution = orginMidFile.getResolution();
+
+            MidiTrack track0 = orginMidFile.getTracks().get(0);
+            MidiTrack targetTrack = orginMidFile.getTracks().get(trackIndex);
+            MidiTrack tempoTrack = new MidiTrack();
+            MidiTrack musicTrack = new MidiTrack();
+            for (MidiEvent event : track0.getEvents()) {
+                if(event instanceof TimeSignature || event instanceof Tempo){
+                    tempoTrack.insertEvent(event);
+                }
+            }
+
+            for(MidiEvent event : targetTrack.getEvents()){
+                if(event instanceof ProgramChange){
+                    ((ProgramChange) event).setProgramNumber(0);
+                }
+                musicTrack.insertEvent(event);
+            }
+
+            ArrayList<MidiTrack> trackList = new ArrayList<>();
+            trackList.add(tempoTrack);
+            trackList.add(musicTrack);
+            MidiFile resMidFile = new MidiFile(resolution, trackList);
+            resMidFile.writeToFile(outputFile);
+            mp = new MediaPlayer();
+            mp.setDataSource(outputFile.getPath());
+            mp.prepare();
+            mp.setOnSeekCompleteListener(new MediaPlayer.OnSeekCompleteListener() {
+                @Override
+                public void onSeekComplete(MediaPlayer mp) {
+                    mp.start();
+                }
+            });
+        }catch (IOException e){e.printStackTrace();}
+    }
+
+    public void startMusic() {
+        if(mp !=null){
+            if(mp.getCurrentPosition() != 0)
+                mp.seekTo(0);
+            else
+                mp.start();
+        }
+    }
 
     public Music getMusic(){
         ArrayList<Music> musicList = Utils.getMusicSheets();
@@ -207,6 +287,10 @@ public class GameActivity extends Activity {
         super.onStop();
         try {
             dispatcher.stop();
+            if(mp != null){
+                mp.stop();
+                mp.release();
+            }
         }catch (Exception e){e.printStackTrace();}
 
     }

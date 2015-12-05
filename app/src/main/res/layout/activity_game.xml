@@ -81,13 +81,16 @@
         android:id="@+id/pauseView"
         android:visibility="gone">
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center"
             android:text="送别"
             android:textSize="70sp"
             android:textColor="#03a9f4"
             android:layout_marginTop="20dp"
-            android:id="@+id/title"/>
+            android:id="@+id/title"
+            android:singleLine="true"
+            android:ellipsize="end"/>
 
         <ImageView
             android:layout_width="80dp"
@@ -105,16 +108,18 @@
         android:gravity="center_horizontal"
         android:background="#9555"
         android:orientation="vertical"
-        android:visibility="gone"
         android:id="@+id/gameOverView">
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="送别"
+            android:gravity="center"
             android:textSize="70sp"
             android:textColor="#03a9f4"
             android:layout_marginTop="20dp"
-            android:id="@+id/gameOverTitle"/>
+            android:id="@+id/gameOverTitle"
+            android:singleLine="true"
+            android:ellipsize="end"/>
 
         <LinearLayout
             android:layout_width="match_parent"

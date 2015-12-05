@@ -39,6 +39,58 @@ public class MyGLSurfaceView extends GLSurfaceView{
         setEGLContextClientVersion(2);
         setRenderer(mRenderer);
 
+        startScoreThread();
+    }
+
+    public void setCurrentTone(int Tone){
+        mRenderer.setCurrentActiveTone(Tone);
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if(!mRenderer.isPaused() && !gameoverFlag){
+            if(pauseHandler != null)
+                pauseHandler.run();
+            mRenderer.pause();
+        }
+        return super.onTouchEvent(event);
+    }
+
+    public void resume(int gametime){
+        if(mRenderer.isPaused()){
+            mRenderer.resume(gametime);
+        }
+    }
+
+    public void gameover(){
+        gameoverFlag = true;
+    }
+
+    public void setGameOverHandler(Runnable gameOverHandler){
+        this.gameoverHandler = gameOverHandler;
+    }
+
+    public void setUpdateScoreHandler(Runnable updateScoreHandler){
+        this.updateScoreHandler = updateScoreHandler;
+    }
+
+    public int getScore(){
+        return score;
+    }
+
+    public void setPauseHandler(Runnable pauseHandler){
+        this.pauseHandler = pauseHandler;
+    }
+
+    public void restart(){
+
+        mRenderer.restart();
+        startScoreThread();
+        gameoverFlag = false;
+        score = 0;
+    }
+
+    private void startScoreThread(){
         // score thread
         new Thread(new Runnable() {
             @Override
@@ -64,46 +116,4 @@ public class MyGLSurfaceView extends GLSurfaceView{
             }
         }).start();
     }
-
-    public void setCurrentTone(int Tone){
-        mRenderer.setCurrentActiveTone(Tone);
-    }
-
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        if(!mRenderer.isPaused()){
-            if(pauseHandler != null)
-                pauseHandler.run();
-            mRenderer.pause();
-        }
-        return super.onTouchEvent(event);
-    }
-
-    public void resume(){
-        if(mRenderer.isPaused()){
-            mRenderer.resume();
-        }
-    }
-
-    public void gameover(){
-        gameoverFlag = true;
-    }
-
-    public void setGameOverHandler(Runnable gameOverHandler){
-        this.gameoverHandler = gameOverHandler;
-    }
-
-    public void setUpdateScoreHandler(Runnable updateScoreHandler){
-        this.updateScoreHandler = updateScoreHandler;
-    }
-
-    public int getScore(){
-        return score;
-    }
-
-    public void setPauseHandler(Runnable pauseHandler){
-        this.pauseHandler = pauseHandler;
-    }
-
-    public void restart(){}
 }

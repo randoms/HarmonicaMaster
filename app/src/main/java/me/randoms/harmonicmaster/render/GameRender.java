@@ -6,7 +6,10 @@ import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.os.SystemClock;
+import android.util.Log;
 
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -53,6 +56,8 @@ public class GameRender implements GLSurfaceView.Renderer {
     private long lastUpdateTime = 0;
     private long gameTime = 0;
     private boolean paused = false;
+    // music related
+    protected boolean musicPlayFlag = false;
 
     private boolean isMatched = false;
     private boolean isGameOver = false;
@@ -128,9 +133,11 @@ public class GameRender implements GLSurfaceView.Renderer {
 
         gameTime += SystemClock.uptimeMillis() - lastUpdateTime;
         lastUpdateTime = SystemClock.uptimeMillis();
+
         float cameraPoxY = gameTime / 1000.0f * MGLUtils.transformCoordinateY(128);
         float cameraPoxYinPix = -gameTime / 1000.0f * 128 + 720/2;
-        if( - (musicLength + 1000) * 128 /1000f > (cameraPoxYinPix + 720/2)){
+
+        if( gameTime > musicLength + (720.0/128*1000)){
             // last tone has outof screen
             isGameOver = true;
             return;
@@ -139,10 +146,18 @@ public class GameRender implements GLSurfaceView.Renderer {
         Matrix.setLookAtM(mViewMatrix, 0, 0f, cameraPoxY, 1f, 0f, cameraPoxY, 0f, 0f, 1.0f, 0.0f);
         Matrix.setLookAtM(mStaticViewMatrix, 0, 0f, 0, 1f, 0f, 0, 0f, 0f, 1.0f, 0.0f);
 
-        // Draw triangle
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
         mBg.draw(mStaticViewMatrix);
         title.draw(mStaticViewMatrix);
+
+        float checkLinePosYinPix = 512f;
+
+        // music related
+        if(!musicPlayFlag && cameraPoxYinPix < (720/2 - checkLinePosYinPix)){
+            musicPlayFlag = true;
+            mContext.startMusic();
+        }
+
         boolean noToneFlag = true;
         for(int count = 0; count < toneList.size();count ++){
             if(toneList.get(count) == null){
@@ -153,7 +168,6 @@ public class GameRender implements GLSurfaceView.Renderer {
                 continue; // out of camera range
             }
             Tone currentTone = toneList.get(count);
-            float checkLinePosYinPix = 512f;
             if(currentTone.getToneName() == currentActiveTone
                     && currentTone.getBottom() > cameraPoxYinPix + (checkLinePosYinPix - 720/2)
                     && currentTone.getTop() < cameraPoxYinPix + (checkLinePosYinPix - 720/2)){
@@ -208,8 +222,9 @@ public class GameRender implements GLSurfaceView.Renderer {
         paused = true;
     }
 
-    public  void resume(){
+    public  void resume(int gameTime){
         paused = false;
+        this.gameTime = gameTime;
     }
 
     public boolean isPaused(){
@@ -222,5 +237,12 @@ public class GameRender implements GLSurfaceView.Renderer {
 
     public boolean isGameOver(){
         return isGameOver;
+    }
+
+    public void restart(){
+        gameTime = 0;
+        isGameOver = false;
+        paused = false;
+        musicPlayFlag = false;
     }
 }
