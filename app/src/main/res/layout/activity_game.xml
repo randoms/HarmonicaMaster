@@ -108,6 +108,7 @@
         android:gravity="center_horizontal"
         android:background="#9555"
         android:orientation="vertical"
+        android:visibility="gone"
         android:id="@+id/gameOverView">
         <TextView
             android:layout_width="match_parent"

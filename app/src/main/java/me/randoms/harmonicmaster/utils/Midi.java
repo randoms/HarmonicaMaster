@@ -1,5 +1,6 @@
 package me.randoms.harmonicmaster.utils;
 
+
 import com.leff.midi.MidiFile;
 import com.leff.midi.MidiTrack;
 import com.leff.midi.event.MidiEvent;
@@ -13,6 +14,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.UUID;
 
+import me.randoms.harmonicmaster.models.Harmonic10;
 import me.randoms.harmonicmaster.models.Music;
 import me.randoms.harmonicmaster.models.Sound;
 import me.randoms.harmonicmaster.models.Track;
@@ -71,6 +73,10 @@ public class Midi {
     }
 
     public static Music getMidiTracks(File file, int trackNum){
+        return getMidiTracks(file, trackNum, false);
+    }
+
+    public static Music getMidiTracks(File file, int trackNum, boolean changeTone){
         MidiFile midiFile;
         try {
             midiFile = new MidiFile(file);
@@ -97,7 +103,11 @@ public class Midi {
         musicData.setLength(length);
 
         ArrayList<Sound> soundList = new ArrayList<>();
-        MidiTrack track1 = midiFile.getTracks().get(trackNum);
+        MidiTrack track1;
+        if(changeTone)
+            track1 = ChangeTone(midiFile.getTracks().get(trackNum), 10);
+        else
+            track1 = midiFile.getTracks().get(trackNum);
         // get average tone
         int totalSound = 0;
         int totalTone = 0;
@@ -139,5 +149,78 @@ public class Midi {
         }
         musicData.setSounds(soundList);
         return musicData;
+    }
+
+    public static MidiTrack ChangeTone(MidiTrack origin, int type){
+        // get current Harmonica type
+        int[] sweetArea = Harmonic10.sweetAreas;
+        if(type == Statics.TEN){
+            sweetArea = Harmonic10.sweetAreas;
+        }
+
+        // get average tone
+        int totalSound = 0;
+        int totalTone = 0;
+        for (MidiEvent event : origin.getEvents()){
+            if(event instanceof NoteOn){
+                NoteOn noteOn = (NoteOn)event;
+                totalSound ++;
+                totalTone += noteOn.getNoteValue();
+            }
+        }
+        int distanceFormCenter = 0;
+        int distanceToAdd = 0;
+        if(totalSound != 0){
+            distanceFormCenter = totalTone / totalSound;
+            distanceToAdd = -(int)(Math.floor((distanceFormCenter - 72.0)/12))*12; //转调, 72是中心C 整12度升降
+        }
+
+        int[] soundList = new int[totalSound];
+        int soundIndex = 0;
+        for(MidiEvent event : origin.getEvents()){
+            if(event instanceof NoteOn && ((NoteOn)event).getVelocity() != 0){
+                soundList[soundIndex] = ((NoteOn) event).getNoteValue() - 48 + distanceToAdd;
+                soundIndex ++;
+            }
+        }
+
+        int originTonilty = distanceFormCenter%12;
+        int[] badTonesCount = new int[12];
+
+        for(int toneIndex = 0; toneIndex < 12; toneIndex ++){
+            for(int tonename:soundList){
+                int newTonename = tonename + toneIndex - originTonilty;
+                boolean foundFlag = false;
+                for(int sweetTone:sweetArea){
+                    if(sweetTone == newTonename)
+                        foundFlag = true;
+                }
+                // bad tone found
+                if(!foundFlag)
+                    badTonesCount[toneIndex] ++;
+            }
+        }
+
+        // find min bad tone count
+        int minBadCountIndex = 0;
+        for(int badCountIndex = 0; badCountIndex < 12; badCountIndex ++){
+            if(badTonesCount[badCountIndex] < badTonesCount[minBadCountIndex])
+                minBadCountIndex = badCountIndex;
+        }
+
+        // 开始转调
+        MidiTrack newTrack = new MidiTrack();
+        for(MidiEvent event: origin.getEvents()){
+            if(event instanceof NoteOn){
+                int noteValue = ((NoteOn) event).getNoteValue();
+                ((NoteOn) event).setNoteValue(noteValue + minBadCountIndex - originTonilty);
+            }
+            if(event instanceof NoteOff){
+                int noteValue = ((NoteOff) event).getNoteValue();
+                ((NoteOff) event).setNoteValue(noteValue + minBadCountIndex - originTonilty);
+            }
+            newTrack.insertEvent(event);
+        }
+        return newTrack;
     }
 }

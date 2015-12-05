@@ -77,6 +77,9 @@ public class TrackAdapter extends BaseAdapter {
         if(mTracks.get(position).soundNum == 0){
             lisetenGame.setVisibility(View.INVISIBLE);
             playGame.setVisibility(View.INVISIBLE);
+        }else{
+            lisetenGame.setVisibility(View.VISIBLE);
+            playGame.setVisibility(View.VISIBLE);
         }
 
         playGame.setOnClickListener(new View.OnClickListener() {

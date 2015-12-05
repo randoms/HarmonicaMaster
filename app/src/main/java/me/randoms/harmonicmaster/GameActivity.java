@@ -228,7 +228,11 @@ public class GameActivity extends Activity {
             int resolution = orginMidFile.getResolution();
 
             MidiTrack track0 = orginMidFile.getTracks().get(0);
-            MidiTrack targetTrack = orginMidFile.getTracks().get(trackIndex);
+
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+            MidiTrack targetTrack = Midi.ChangeTone(orginMidFile.getTracks().get(trackIndex),
+                    prefs.getInt(Statics.HARMONIC_TYPE, 10));
             MidiTrack tempoTrack = new MidiTrack();
             MidiTrack musicTrack = new MidiTrack();
             for (MidiEvent event : track0.getEvents()) {

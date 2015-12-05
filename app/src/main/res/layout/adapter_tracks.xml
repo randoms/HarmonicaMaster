@@ -30,8 +30,8 @@
         android:layout_width="60dp"
         android:layout_height="60dp"
         android:src="@drawable/music"
-        android:layout_marginLeft="20dp"
         android:id="@+id/listen"
+        android:layout_marginLeft="20dp"
         android:padding="12dp"/>
     <ImageView
         android:layout_width="60dp"
