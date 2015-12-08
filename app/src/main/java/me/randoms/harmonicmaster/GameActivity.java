@@ -37,6 +37,7 @@ import be.tarsos.dsp.pitch.PitchDetectionHandler;
 import be.tarsos.dsp.pitch.PitchDetectionResult;
 import be.tarsos.dsp.pitch.PitchProcessor;
 import me.randoms.harmonicmaster.models.Harmonic10;
+import me.randoms.harmonicmaster.models.Harmonic24;
 import me.randoms.harmonicmaster.models.Music;
 import me.randoms.harmonicmaster.models.ToneModel;
 import me.randoms.harmonicmaster.utils.Midi;
@@ -141,6 +142,9 @@ public class GameActivity extends Activity {
             case 10:
                 toneList = Harmonic10.mToneList;
                 break;
+            case 24:
+                toneList = Harmonic24.mToneList;
+                break;
             default:
                 toneList = Harmonic10.mToneList;
         }
@@ -177,9 +181,11 @@ public class GameActivity extends Activity {
             @Override
             public void onClick(View v) {
                 pauseView.setVisibility(View.GONE);
-                mGLView.resume(mp.getCurrentPosition() + 512*1000/128);
                 if(mp != null && !mp.isPlaying()){
+                    mGLView.resume(mp.getCurrentPosition() + 512*1000/128);
                     mp.start();
+                }else{
+                    mGLView.resume(0);
                 }
             }
         });

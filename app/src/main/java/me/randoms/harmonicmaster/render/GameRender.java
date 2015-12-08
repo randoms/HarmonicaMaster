@@ -224,7 +224,8 @@ public class GameRender implements GLSurfaceView.Renderer {
 
     public  void resume(int gameTime){
         paused = false;
-        this.gameTime = gameTime;
+        if(gameTime != 0)
+            this.gameTime = gameTime;
     }
 
     public boolean isPaused(){

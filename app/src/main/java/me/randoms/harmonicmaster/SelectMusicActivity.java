@@ -21,6 +21,10 @@ public class SelectMusicActivity extends Activity{
 		setContentView(R.layout.activity_select_music);
 		ListView musicListView = (ListView)findViewById(R.id.musicSheetList);
 		MusicListAdapter mAdapter = new MusicListAdapter(this,Utils.getMusicSheets());
+        if(Utils.getMusicSheets().size() == 0){
+            findViewById(R.id.downloadText).setVisibility(View.VISIBLE);
+            musicListView.setVisibility(View.GONE);
+        }
 		musicListView.setAdapter(mAdapter);
 		musicListView.setOnItemClickListener(mAdapter);
 

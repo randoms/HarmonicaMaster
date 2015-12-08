@@ -15,14 +15,16 @@
             android:id="@+id/title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="16sp" />
+            android:textSize="16sp"
+			android:textColor="#fff"/>
         
         <TextView 
             android:id="@+id/author"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="100dp"
-            android:textSize="16sp"/>
+            android:textSize="16sp"
+            android:textColor="#fff"/>
     </LinearLayout>
     
     <LinearLayout 
